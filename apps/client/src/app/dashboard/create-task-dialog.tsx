@@ -10,7 +10,6 @@ import {
   Textarea,
 } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { readErrorMessage } from '../../common/read-error-message';
@@ -26,13 +25,14 @@ type CreateTaskValues = z.infer<typeof createTaskSchema>;
 type CreateTaskDialogProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: () => void;
 };
 
 export function CreateTaskDialog({
   isOpen,
   onOpenChange,
+  onCreated,
 }: CreateTaskDialogProps) {
-  const queryClient = useQueryClient();
   const createTodo = useCreateTodo();
   const [notice, setNotice] = useState<string | null>(null);
   const { control, handleSubmit, reset } = useForm<CreateTaskValues>({
@@ -52,7 +52,7 @@ export function CreateTaskDialog({
           reset();
           setNotice(null);
           onOpenChange(false);
-          void queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+          onCreated?.();
         },
         onError: (error) => {
           setNotice(readErrorMessage(error));
