@@ -69,6 +69,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@heroui/react": "^2.8.10",
+    "@hookform/resolvers": "^5.9.1",
     "@janindu-pathirana/authkit": "^1.0.1",
     "@janindu-pathirana/message-builder": "^1.0.4",
     "@nestjs/common": "^11.0.0",
@@ -84,9 +85,11 @@
     "pg": "^8.23.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.89.0",
     "react-router": "^8.4.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
-    "typeorm": "^1.1.1"
+    "typeorm": "^1.1.1",
+    "zod": "^4.6.5"
   }
 }
