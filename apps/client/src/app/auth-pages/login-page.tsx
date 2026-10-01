@@ -5,7 +5,7 @@ import { LockClosedIcon } from '@heroicons/react/24/outline';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { readErrorMessage } from '../../common/read-error-message';
-import { authStorageKey } from '../../common/read-stored-auth';
+import { writeStoredAuth } from '../../common/read-stored-auth';
 import { useLogin } from '../../service/use-auth.service';
 import { AppRoutes } from '../../routes';
 import { Link as RouterLink, useNavigate } from 'react-router';
@@ -44,14 +44,11 @@ export function LoginPage() {
       { username: values.username, password: values.password },
       {
         onSuccess: (data, body) => {
-          localStorage.setItem(
-            authStorageKey,
-            JSON.stringify({
-              accessToken: data.accessToken,
-              refreshToken: data.refreshToken,
-              user: data.user,
-            }),
-          );
+          writeStoredAuth({
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            user: data.user,
+          });
           if (values.remember) {
             localStorage.setItem(rememberedUsernameKey, body.username);
           } else {

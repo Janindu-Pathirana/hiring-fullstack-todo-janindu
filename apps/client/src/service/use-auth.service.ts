@@ -1,7 +1,7 @@
 import { useMutation, type UseMutationResult } from '@tanstack/react-query';
-import type { ILoginRequestBody, IRegisterRequestBody } from '@hiring-fullstack-todo-janindu/shared-types';
+import type { ILoginRequestBody, ILogoutRequestBody, IRegisterRequestBody } from '@hiring-fullstack-todo-janindu/shared-types';
 import type { AxiosError } from 'axios';
-import { authApi, type LoginResponse, type RegisterResponse } from '../api/auth.api';
+import { authApi, type LoginResponse, type LogoutResponse, type RegisterResponse } from '../api/auth.api';
 
 export function useLogin(): UseMutationResult<
   LoginResponse,
@@ -20,5 +20,15 @@ export function useRegister(): UseMutationResult<
 > {
   return useMutation({
     mutationFn: authApi.register,
+  });
+}
+
+export function useLogout(): UseMutationResult<
+  LogoutResponse,
+  AxiosError<{ message?: string | string[] }>,
+  ILogoutRequestBody
+> {
+  return useMutation({
+    mutationFn: authApi.logout,
   });
 }
