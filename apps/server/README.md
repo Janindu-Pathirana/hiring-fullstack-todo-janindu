@@ -23,6 +23,8 @@ Every script is in the root `package.json` and is run with `pnpm` from the repo 
 - `pnpm client:server` starts only the server at http://localhost:3030/api.
 - `pnpm build` builds the client and the server.
 - `pnpm test` runs the client and server test suites.
+- `pnpm server:test` runs only the server test suite.
+- `pnpm server:test:coverage` runs the server tests, prints the coverage table, and writes the HTML report to `coverage/apps/server`.
 - `pnpm lint` lints the workspace.
 - `pnpm db:migrate` applies the TypeORM todo migrations.
 - `pnpm db:migrate:auth` applies the AuthKit migrations. See Auth migrations.
@@ -107,7 +109,7 @@ Request and response shapes live in `@hiring-fullstack-todo-janindu/shared-types
 
 ## Tests
 
-Each endpoint has unit tests. Controller specs cover the route handlers. Service specs cover the behavior behind them, including success, validation failures, unauthorized access, not found, and unexpected errors. `pnpm test` runs those suites.
+Each endpoint has unit tests. Controller specs cover the route handlers. Service specs cover the behavior behind them, including success, validation failures, unauthorized access, not found, and unexpected errors. `pnpm test` runs the client and server suites. `pnpm server:test` runs only the server suite. `pnpm server:test:coverage` prints the coverage table and writes the HTML report to `coverage/apps/server`.
 
 ## Data model
 
