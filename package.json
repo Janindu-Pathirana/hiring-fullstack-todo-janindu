@@ -67,6 +67,8 @@
   },
   "dependencies": {
     "@heroui/react": "^2.8.10",
+    "@janindu-pathirana/authkit": "^1.0.1",
+    "@janindu-pathirana/message-builder": "^1.0.4",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^12.0.1",
     "@nestjs/core": "^11.0.0",
