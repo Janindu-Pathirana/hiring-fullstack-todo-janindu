@@ -5,9 +5,10 @@ import { LockClosedIcon } from '@heroicons/react/24/outline';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { readErrorMessage } from '../../common/read-error-message';
+import { authStorageKey } from '../../common/read-stored-auth';
 import { useLogin } from '../../service/use-auth.service';
 import { AppRoutes } from '../../routes';
-import { Link as RouterLink } from 'react-router';
+import { Link as RouterLink, useNavigate } from 'react-router';
 
 const rememberedUsernameKey = 'remembered-username';
 
@@ -20,6 +21,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
+  const navigate = useNavigate();
   const [notice, setNotice] = useState<{
     tone: 'success' | 'error';
     text: string;
@@ -43,7 +45,7 @@ export function LoginPage() {
       {
         onSuccess: (data, body) => {
           localStorage.setItem(
-            'auth',
+            authStorageKey,
             JSON.stringify({
               accessToken: data.accessToken,
               refreshToken: data.refreshToken,
@@ -56,6 +58,7 @@ export function LoginPage() {
             localStorage.removeItem(rememberedUsernameKey);
           }
           setNotice({ tone: 'success', text: data.message });
+          navigate(AppRoutes.HOME);
         },
         onError: (error) => {
           setNotice({ tone: 'error', text: readErrorMessage(error) });
