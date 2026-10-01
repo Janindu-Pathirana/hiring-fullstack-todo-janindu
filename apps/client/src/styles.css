@@ -2,3 +2,46 @@
 @plugin './hero.ts';
 @source '../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-200: #bae6fd;
+  --color-brand-500: #0ea5e9;
+  --color-brand-600: #0284c7;
+  --color-brand-700: #0369a1;
+
+  --color-surface-canvas: #f8fafc;
+  --color-surface-card: #ffffff;
+  --color-surface-sunken: #f7f5f2;
+
+  --color-border-subtle: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+  --color-text-brand: #0284c7;
+
+  --color-status-success: #10b981;
+  --color-status-info: #38b2f6;
+  --color-status-warn: #f59e0b;
+  --color-status-danger: #ef4444;
+  --color-status-neutral: #64748b;
+
+  --color-tender-cash: #10b981;
+  --color-tender-card: #6366f1;
+  --color-tender-transfer: #0ea5e9;
+  --color-tender-whatsapp: #22c55e;
+  --color-tender-deposit: #8b5cf6;
+
+  --color-module-inventory: #f97316;
+  --color-module-services: #8b5cf6;
+  --color-module-commission: #d946ef;
+  --color-module-reports: #0ea5e9;
+}
+
+body {
+  background-color: var(--color-surface-canvas);
+  color: var(--color-text-primary);
+}
