@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthKitError, isAuthKitError } from '@janindu-pathirana/authkit';
 import MessageBuilder from '@janindu-pathirana/message-builder';
@@ -32,6 +33,24 @@ export class AuthService {
     }
   }
 
+  async login(username: string, password: string) {
+    try {
+      const session = await this.authKit.client.loginWithSession(
+        username,
+        password,
+      );
+      return { message: this.messages.success('login'), ...session };
+    } catch (error) {
+      if (isAuthKitError(error)) {
+        throw this.toHttpError(error);
+      }
+      handleError(
+        error,
+        new InternalServerErrorException(this.messages.somethingWentWrong()),
+      );
+    }
+  }
+
   private toHttpError(error: AuthKitError): HttpException {
     switch (error.code) {
       case 'USERNAME_TAKEN':
@@ -48,6 +67,8 @@ export class AuthService {
         return new BadRequestException(
           this.messages.invalid('password', error.message),
         );
+      case 'INVALID_CREDENTIALS':
+        return new UnauthorizedException(this.messages.unauthorized());
       case 'RATE_LIMITED':
         return new HttpException(error.message, HttpStatus.TOO_MANY_REQUESTS);
       default:
