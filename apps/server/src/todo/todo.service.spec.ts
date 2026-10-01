@@ -1,9 +1,11 @@
 import {
+  BadRequestException,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { TodoStatus } from '@hiring-fullstack-todo-janindu/shared-types';
 import MessageBuilder from '@janindu-pathirana/message-builder';
 import { IsNull } from 'typeorm';
 import { Todo } from './todo.entity';
@@ -129,6 +131,93 @@ describe('TodoService', () => {
       findOne.mockResolvedValue(null);
 
       await expect(service.findOne('user-1', 'todo-1')).rejects.toEqual(
+        new NotFoundException(messages.notFound()),
+      );
+    });
+  });
+
+  describe('update()', () => {
+    const existing = {
+      id: 'todo-1',
+      userId: 'user-1',
+      title: 'Buy milk',
+      description: 'Whole milk',
+      status: TodoStatus.InProgress,
+      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+      deletedAt: null,
+    };
+
+    it('changes only the given fields and sets updatedAt', async () => {
+      findOne.mockResolvedValue({ ...existing });
+      save.mockImplementation(async (todo) => todo);
+
+      const result = await service.update('user-1', 'todo-1', {
+        status: TodoStatus.Done,
+      });
+
+      expect(result.message).toBe(messages.success('update'));
+      expect(result.todo).toMatchObject({
+        title: 'Buy milk',
+        description: 'Whole milk',
+        status: TodoStatus.Done,
+      });
+      expect(result.todo.updatedAt).not.toEqual(existing.updatedAt);
+    });
+
+    it('stores a blank description as null', async () => {
+      findOne.mockResolvedValue({ ...existing });
+      save.mockImplementation(async (todo) => todo);
+
+      const result = await service.update('user-1', 'todo-1', {
+        description: '',
+      });
+
+      expect(result.todo).toMatchObject({
+        title: 'Buy milk',
+        description: null,
+        status: TodoStatus.InProgress,
+      });
+    });
+
+    it('rejects an empty body', async () => {
+      await expect(service.update('user-1', 'todo-1', {})).rejects.toEqual(
+        new BadRequestException(
+          messages.badRequest('update', 'At least one field is required.'),
+        ),
+      );
+      expect(findOne).not.toHaveBeenCalled();
+    });
+
+    it('returns not found when the todo is missing', async () => {
+      findOne.mockResolvedValue(null);
+
+      await expect(
+        service.update('user-1', 'todo-1', { title: 'New title' }),
+      ).rejects.toEqual(new NotFoundException(messages.notFound()));
+    });
+  });
+
+  describe('remove()', () => {
+    it('sets deletedAt on the owned todo', async () => {
+      const existing = {
+        id: 'todo-1',
+        userId: 'user-1',
+        title: 'Buy milk',
+        deletedAt: null,
+      };
+      findOne.mockResolvedValue(existing);
+      save.mockImplementation(async (todo) => todo);
+
+      const result = await service.remove('user-1', 'todo-1');
+
+      expect(result.message).toBe(messages.success('delete'));
+      expect(result.todo.deletedAt).toBeInstanceOf(Date);
+    });
+
+    it('returns not found when the todo is missing', async () => {
+      findOne.mockResolvedValue(null);
+
+      await expect(service.remove('user-1', 'todo-1')).rejects.toEqual(
         new NotFoundException(messages.notFound()),
       );
     });

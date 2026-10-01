@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
@@ -8,6 +9,7 @@ import MessageBuilder from '@janindu-pathirana/message-builder';
 import { AuthKitService } from '../auth/authkit.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { GetTodoDto } from './dto/get-todo.dto';
+import { UpdateTodoDto } from './dto/update-todo.dto';
 import { TodoController } from './todo.controller';
 import { TodoService } from './todo.service';
 
@@ -28,6 +30,8 @@ describe('TodoController', () => {
   const create = jest.fn();
   const findAll = jest.fn();
   const findOne = jest.fn();
+  const update = jest.fn();
+  const remove = jest.fn();
   let controller: TodoController;
 
   beforeAll(async () => {
@@ -36,7 +40,7 @@ describe('TodoController', () => {
       providers: [
         {
           provide: TodoService,
-          useValue: { create, findAll, findOne },
+          useValue: { create, findAll, findOne, update, remove },
         },
         {
           provide: AuthKitService,
@@ -53,6 +57,8 @@ describe('TodoController', () => {
     create.mockReset();
     findAll.mockReset();
     findOne.mockReset();
+    update.mockReset();
+    remove.mockReset();
   });
 
   afterEach(() => {
@@ -148,6 +154,77 @@ describe('TodoController', () => {
       findOne.mockRejectedValue(new Error('database down'));
 
       await expect(controller.findOne(params, user)).rejects.toEqual(
+        new InternalServerErrorException(messages.somethingWentWrong()),
+      );
+    });
+  });
+
+  describe('update()', () => {
+    const params = Object.assign(new GetTodoDto(), {
+      id: '11111111-1111-4111-8111-111111111111',
+    });
+    const body = Object.assign(new UpdateTodoDto(), { title: 'New title' });
+
+    it('returns the service result for the current user', async () => {
+      const result = {
+        message: messages.success('update'),
+        todo: { id: params.id, title: 'New title' },
+      };
+      update.mockResolvedValue(result);
+
+      await expect(controller.update(params, body, user)).resolves.toEqual(
+        result,
+      );
+      expect(update).toHaveBeenCalledWith('user-1', params.id, body);
+    });
+
+    it('rethrows an HttpException from the service', async () => {
+      const badRequest = new BadRequestException(
+        messages.badRequest('update', 'At least one field is required.'),
+      );
+      update.mockRejectedValue(badRequest);
+
+      await expect(controller.update(params, body, user)).rejects.toBe(
+        badRequest,
+      );
+    });
+
+    it('wraps an unknown error as an internal server error', async () => {
+      update.mockRejectedValue(new Error('database down'));
+
+      await expect(controller.update(params, body, user)).rejects.toEqual(
+        new InternalServerErrorException(messages.somethingWentWrong()),
+      );
+    });
+  });
+
+  describe('remove()', () => {
+    const params = Object.assign(new GetTodoDto(), {
+      id: '11111111-1111-4111-8111-111111111111',
+    });
+
+    it('returns the service result for the current user', async () => {
+      const result = {
+        message: messages.success('delete'),
+        todo: { id: params.id, deletedAt: new Date() },
+      };
+      remove.mockResolvedValue(result);
+
+      await expect(controller.remove(params, user)).resolves.toEqual(result);
+      expect(remove).toHaveBeenCalledWith('user-1', params.id);
+    });
+
+    it('rethrows an HttpException from the service', async () => {
+      const notFound = new NotFoundException(messages.notFound());
+      remove.mockRejectedValue(notFound);
+
+      await expect(controller.remove(params, user)).rejects.toBe(notFound);
+    });
+
+    it('wraps an unknown error as an internal server error', async () => {
+      remove.mockRejectedValue(new Error('database down'));
+
+      await expect(controller.remove(params, user)).rejects.toEqual(
         new InternalServerErrorException(messages.somethingWentWrong()),
       );
     });
