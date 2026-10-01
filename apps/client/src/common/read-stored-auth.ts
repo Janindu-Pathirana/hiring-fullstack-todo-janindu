@@ -4,10 +4,10 @@ export type StoredAuth = {
   user: { id: string; username: string };
 };
 
-export const authStorageKey = 'auth';
+export const AUTH_STORAGE_KEY = 'auth';
 
 export function readStoredAuth(): StoredAuth | null {
-  const raw = localStorage.getItem(authStorageKey);
+  const raw = localStorage.getItem(AUTH_STORAGE_KEY);
   if (!raw) {
     return null;
   }
@@ -24,11 +24,11 @@ export function readStoredAuth(): StoredAuth | null {
 }
 
 export function writeStoredAuth(auth: StoredAuth) {
-  localStorage.setItem(authStorageKey, JSON.stringify(auth));
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth));
 }
 
 export function clearStoredAuth() {
-  localStorage.removeItem(authStorageKey);
+  localStorage.removeItem(AUTH_STORAGE_KEY);
 }
 
 function isStoredAuth(value: unknown): value is StoredAuth {

@@ -10,7 +10,7 @@ import { useLogin } from '../../service/use-auth.service';
 import { AppRoutes } from '../../routes';
 import { Link as RouterLink, useNavigate } from 'react-router';
 
-const rememberedUsernameKey = 'remembered-username';
+const REMEMBERED_USERNAME_KEY = 'remembered-username';
 
 const loginSchema = z.object({
   username: z.string().trim().min(1, 'Username is required').max(64),
@@ -30,9 +30,9 @@ export function LoginPage() {
   const { control, handleSubmit } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: localStorage.getItem(rememberedUsernameKey) ?? '',
+      username: localStorage.getItem(REMEMBERED_USERNAME_KEY) ?? '',
       password: '',
-      remember: localStorage.getItem(rememberedUsernameKey) !== null,
+      remember: localStorage.getItem(REMEMBERED_USERNAME_KEY) !== null,
     },
   });
 
@@ -50,9 +50,9 @@ export function LoginPage() {
             user: data.user,
           });
           if (values.remember) {
-            localStorage.setItem(rememberedUsernameKey, body.username);
+            localStorage.setItem(REMEMBERED_USERNAME_KEY, body.username);
           } else {
-            localStorage.removeItem(rememberedUsernameKey);
+            localStorage.removeItem(REMEMBERED_USERNAME_KEY);
           }
           setNotice({ tone: 'success', text: data.message });
           navigate(AppRoutes.HOME);

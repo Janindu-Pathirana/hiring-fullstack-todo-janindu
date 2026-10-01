@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import MessageBuilder from '@janindu-pathirana/message-builder';
@@ -15,6 +16,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { handleError } from '../common/handle-error';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { GetTodoDto } from './dto/get-todo.dto';
+import { ListTodoDto } from './dto/list-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { TodoService } from './todo.service';
 
@@ -45,9 +47,12 @@ export class TodoController {
   }
 
   @Get()
-  async findAll(@CurrentUser() user: RequestUser) {
+  async findAll(
+    @Query() query: ListTodoDto,
+    @CurrentUser() user: RequestUser,
+  ) {
     try {
-      return await this.todoService.findAll(user.id);
+      return await this.todoService.findAll(user.id, query.page, query.limit);
     } catch (error) {
       handleError(
         error,

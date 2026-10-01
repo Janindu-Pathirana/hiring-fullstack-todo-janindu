@@ -9,6 +9,7 @@ import MessageBuilder from '@janindu-pathirana/message-builder';
 import { AuthKitService } from '../auth/authkit.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { GetTodoDto } from './dto/get-todo.dto';
+import { ListTodoDto } from './dto/list-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { TodoController } from './todo.controller';
 import { TodoService } from './todo.service';
@@ -100,28 +101,35 @@ describe('TodoController', () => {
   });
 
   describe('findAll()', () => {
+    const query = Object.assign(new ListTodoDto(), { page: 2, limit: 6 });
+
     it('returns the service result for the current user', async () => {
       const result = {
         message: messages.success('list'),
         todos: [{ id: 'todo-1', title: 'Buy milk' }],
+        page: 2,
+        limit: 6,
+        total: 7,
+        totalPages: 2,
+        completed: 2,
       };
       findAll.mockResolvedValue(result);
 
-      await expect(controller.findAll(user)).resolves.toEqual(result);
-      expect(findAll).toHaveBeenCalledWith('user-1');
+      await expect(controller.findAll(query, user)).resolves.toEqual(result);
+      expect(findAll).toHaveBeenCalledWith('user-1', 2, 6);
     });
 
     it('rethrows an HttpException from the service', async () => {
       const unauthorized = new UnauthorizedException(messages.unauthorized());
       findAll.mockRejectedValue(unauthorized);
 
-      await expect(controller.findAll(user)).rejects.toBe(unauthorized);
+      await expect(controller.findAll(query, user)).rejects.toBe(unauthorized);
     });
 
     it('wraps an unknown error as an internal server error', async () => {
       findAll.mockRejectedValue(new Error('database down'));
 
-      await expect(controller.findAll(user)).rejects.toEqual(
+      await expect(controller.findAll(query, user)).rejects.toEqual(
         new InternalServerErrorException(messages.somethingWentWrong()),
       );
     });
