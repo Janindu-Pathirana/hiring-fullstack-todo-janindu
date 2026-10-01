@@ -3,7 +3,7 @@ import { Button, Input, Link } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserIcon } from '@heroicons/react/24/outline';
 import { Controller, useForm } from 'react-hook-form';
-import { Link as RouterLink } from 'react-router';
+import { Link as RouterLink, useNavigate } from 'react-router';
 import { z } from 'zod';
 import { readErrorMessage } from '../../common/read-error-message';
 import { AppRoutes } from '../../routes';
@@ -26,6 +26,7 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterPage() {
+  const navigate = useNavigate();
   const [notice, setNotice] = useState<{
     tone: 'success' | 'error';
     text: string;
@@ -49,6 +50,7 @@ export function RegisterPage() {
       {
         onSuccess: (data) => {
           setNotice({ tone: 'success', text: data.message });
+          navigate(AppRoutes.LOGIN);
         },
         onError: (error) => {
           setNotice({ tone: 'error', text: readErrorMessage(error) });
