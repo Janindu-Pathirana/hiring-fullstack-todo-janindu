@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@heroui/react';
 import {
   CheckCircleIcon,
@@ -9,10 +10,12 @@ import {
 import { readErrorMessage } from '../../common/read-error-message';
 import { Window } from '../../common/window';
 import { useDashboardCounts } from '../../service/use-dashboard.service';
+import { CreateTaskDialog } from './create-task-dialog';
 import { StatCard } from './stat-card';
 
 export function DashboardPage() {
   const dashboard = useDashboardCounts();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const counts = dashboard.data?.counts;
   const countLabel = (count: number | undefined) =>
     dashboard.isPending || count === undefined ? '—' : String(count);
@@ -59,6 +62,7 @@ export function DashboardPage() {
           color="primary"
           radius="lg"
           startContent={<PlusIcon aria-hidden className="h-4 w-4" />}
+          onPress={() => setIsCreateOpen(true)}
         >
           Create New Task
         </Button>
@@ -73,6 +77,7 @@ export function DashboardPage() {
           <StatCard key={stat.label} {...stat} />
         ))}
       </section>
+      <CreateTaskDialog isOpen={isCreateOpen} onOpenChange={setIsCreateOpen} />
     </Window>
   );
 }
