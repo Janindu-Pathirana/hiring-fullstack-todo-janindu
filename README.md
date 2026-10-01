@@ -15,6 +15,17 @@ The client proxies `/api` to the server. `GET /api/health` returns `{ "status": 
 
 ```sh
 pnpm install
+cp .env.example .env
+```
+
+Postgres must already be running on port 5432. The server reads `.env` and connects to the `hiring_fullstack_todo` database.
+
+## Database
+
+Local connection values live in `.env` (see `.env.example`). Create the database once if it does not exist:
+
+```sh
+psql -h localhost -p 5432 -d postgres -c "CREATE DATABASE hiring_fullstack_todo"
 ```
 
 ## Run
