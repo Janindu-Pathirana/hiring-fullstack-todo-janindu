@@ -1,7 +1,8 @@
 import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { IRegisterRequestBody } from '@hiring-fullstack-todo-janindu/shared-types';
 
-export class RegisterBodyDto {
+export class RegisterBodyDto implements IRegisterRequestBody {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @IsNotEmpty()
