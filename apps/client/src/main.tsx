@@ -7,6 +7,7 @@ import App from './app/app';
 import LoginPage from './app/auth-pages/login-page';
 import RegisterPage from './app/auth-pages/register-page';
 import NotFoundPage from './app/not-found-page';
+import TasksPage from './app/tasks/tasks-page';
 import { RequireAuth } from './app/require-auth';
 import { queryClient } from './api/query-client';
 import { AppRoutes } from './routes';
@@ -23,6 +24,7 @@ root.render(
           <Routes>
             <Route element={<RequireAuth />}>
               <Route path={AppRoutes.HOME} element={<App />} />
+              <Route path={AppRoutes.TASKS} element={<TasksPage />} />
             </Route>
             <Route path={AppRoutes.LOGIN} element={<LoginPage />} />
             <Route path={AppRoutes.REGISTER} element={<RegisterPage />} />
