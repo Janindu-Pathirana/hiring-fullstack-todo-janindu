@@ -23,7 +23,8 @@ jest.mock('@nestjs/typeorm', () => {
 describe('TodoService', () => {
   const messages = new MessageBuilder('todo');
   const save = jest.fn();
-  const find = jest.fn();
+  const findAndCount = jest.fn();
+  const count = jest.fn();
   const findOne = jest.fn();
   let service: TodoService;
 
@@ -33,7 +34,7 @@ describe('TodoService', () => {
         TodoService,
         {
           provide: getRepositoryToken(Todo),
-          useValue: { save, find, findOne },
+          useValue: { save, findAndCount, count, findOne },
         },
       ],
     }).compile();
@@ -44,7 +45,8 @@ describe('TodoService', () => {
   beforeEach(() => {
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     save.mockReset();
-    find.mockReset();
+    findAndCount.mockReset();
+    count.mockReset();
     findOne.mockReset();
   });
 
@@ -98,17 +100,53 @@ describe('TodoService', () => {
   });
 
   describe('findAll()', () => {
-    it('returns the current user todos that are not deleted', async () => {
+    it('returns one page of the current user todos that are not deleted', async () => {
       const todos = [{ id: 'todo-1', userId: 'user-1', title: 'Buy milk' }];
-      find.mockResolvedValue(todos);
+      findAndCount.mockResolvedValue([todos, 7]);
+      count.mockResolvedValue(2);
+
+      await expect(service.findAll('user-1', 2, 6)).resolves.toEqual({
+        message: messages.success('list'),
+        todos,
+        page: 2,
+        limit: 6,
+        total: 7,
+        totalPages: 2,
+        completed: 2,
+      });
+      expect(findAndCount).toHaveBeenCalledWith({
+        where: { userId: 'user-1', deletedAt: IsNull() },
+        order: { createdAt: 'DESC' },
+        skip: 6,
+        take: 6,
+      });
+      expect(count).toHaveBeenCalledWith({
+        where: {
+          userId: 'user-1',
+          deletedAt: IsNull(),
+          status: TodoStatus.Done,
+        },
+      });
+    });
+
+    it('defaults to the first page of six todos', async () => {
+      findAndCount.mockResolvedValue([[], 0]);
+      count.mockResolvedValue(0);
 
       await expect(service.findAll('user-1')).resolves.toEqual({
         message: messages.success('list'),
-        todos,
+        todos: [],
+        page: 1,
+        limit: 6,
+        total: 0,
+        totalPages: 0,
+        completed: 0,
       });
-      expect(find).toHaveBeenCalledWith({
+      expect(findAndCount).toHaveBeenCalledWith({
         where: { userId: 'user-1', deletedAt: IsNull() },
         order: { createdAt: 'DESC' },
+        skip: 0,
+        take: 6,
       });
     });
   });
