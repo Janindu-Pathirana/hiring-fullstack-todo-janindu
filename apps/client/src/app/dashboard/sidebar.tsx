@@ -83,7 +83,7 @@ export function Sidebar() {
           fullWidth
           variant="light"
           color="danger"
-          className="mb-3 border border-red-500"
+          className="mb-3 border max-w-52 border-red-500"
           onPress={onLogout}
           isLoading={logout.isPending}
         >
