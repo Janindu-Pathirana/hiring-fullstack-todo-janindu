@@ -177,6 +177,9 @@ importers:
       jsdom:
         specifier: ^27.1.0
         version: 27.4.0(@noble/hashes@1.8.0)
+      jsonc-eslint-parser:
+        specifier: ^2.1.0
+        version: 2.4.2
       nx:
         specifier: 23.2.1
         version: 23.2.1(@swc/core@1.15.47(@swc/helpers@0.5.23))
