@@ -6,7 +6,7 @@ import type {
 } from '@hiring-fullstack-todo-janindu/shared-types';
 import { api } from './client';
 
-export const TODO_PAGE_SIZE = 10;
+export const TODO_PAGE_SIZE = 12;
 
 export type CreateTodoResponse = {
   message: string;
