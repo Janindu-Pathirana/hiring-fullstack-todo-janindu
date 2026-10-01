@@ -10,7 +10,7 @@ jest.mock('./authkit.service', () => ({
 }));
 
 describe('AuthGuard', () => {
-  const messages = new MessageBuilder('todo');
+  const messages = new MessageBuilder('user');
   const verifyAccessToken = jest.fn();
   let guard: AuthGuard;
 
