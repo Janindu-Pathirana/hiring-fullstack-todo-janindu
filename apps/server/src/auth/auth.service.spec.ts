@@ -20,6 +20,8 @@ describe('AuthService', () => {
   const messages = new MessageBuilder('user');
   const register = jest.fn();
   const loginWithSession = jest.fn();
+  const refresh = jest.fn();
+  const logout = jest.fn();
   let service: AuthService;
 
   beforeAll(async () => {
@@ -28,7 +30,7 @@ describe('AuthService', () => {
         AuthService,
         {
           provide: AuthKitService,
-          useValue: { client: { register, loginWithSession } },
+          useValue: { client: { register, loginWithSession, refresh, logout } },
         },
       ],
     }).compile();
@@ -40,6 +42,8 @@ describe('AuthService', () => {
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     register.mockReset();
     loginWithSession.mockReset();
+    refresh.mockReset();
+    logout.mockReset();
   });
 
   afterEach(() => {
@@ -172,6 +176,77 @@ describe('AuthService', () => {
       loginWithSession.mockRejectedValue(new Error('database down'));
 
       await expect(service.login('jane', 'password1')).rejects.toEqual(
+        new InternalServerErrorException(messages.somethingWentWrong()),
+      );
+    });
+  });
+
+  describe('refresh()', () => {
+    const session = {
+      accessToken: 'next-access-token',
+      refreshToken: 'next-refresh-token',
+      accessTokenExpiresAt: new Date('2026-10-01T00:30:00.000Z'),
+      refreshTokenExpiresAt: new Date('2026-11-01T00:00:00.000Z'),
+      sessionId: 'session-2',
+    };
+
+    it('returns a success message and the new session', async () => {
+      refresh.mockResolvedValue(session);
+
+      await expect(service.refresh('refresh-token')).resolves.toEqual({
+        message: messages.success('refresh'),
+        ...session,
+      });
+      expect(refresh).toHaveBeenCalledWith('refresh-token');
+    });
+
+    it.each([
+      'UNAUTHORIZED',
+      'TOKEN_INVALID',
+      'SESSION_EXPIRED',
+      'SESSION_REVOKED',
+      'SESSION_NOT_FOUND',
+    ] as const)('maps %s to unauthorized', async (code) => {
+      refresh.mockRejectedValue(new AuthKitError(code, 'Session is not valid.'));
+
+      await expect(service.refresh('refresh-token')).rejects.toEqual(
+        new UnauthorizedException(messages.unauthorized()),
+      );
+    });
+
+    it('wraps a non-AuthKit error as an internal server error', async () => {
+      refresh.mockRejectedValue(new Error('database down'));
+
+      await expect(service.refresh('refresh-token')).rejects.toEqual(
+        new InternalServerErrorException(messages.somethingWentWrong()),
+      );
+    });
+  });
+
+  describe('logout()', () => {
+    it('returns a success message', async () => {
+      logout.mockResolvedValue(undefined);
+
+      await expect(service.logout('refresh-token')).resolves.toEqual({
+        message: messages.success('logout'),
+      });
+      expect(logout).toHaveBeenCalledWith('refresh-token');
+    });
+
+    it('maps a missing session to unauthorized', async () => {
+      logout.mockRejectedValue(
+        new AuthKitError('SESSION_NOT_FOUND', 'Session was not found.'),
+      );
+
+      await expect(service.logout('refresh-token')).rejects.toEqual(
+        new UnauthorizedException(messages.unauthorized()),
+      );
+    });
+
+    it('wraps a non-AuthKit error as an internal server error', async () => {
+      logout.mockRejectedValue(new Error('database down'));
+
+      await expect(service.logout('refresh-token')).rejects.toEqual(
         new InternalServerErrorException(messages.somethingWentWrong()),
       );
     });
