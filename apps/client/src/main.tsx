@@ -4,8 +4,8 @@ import { HeroUIProvider } from '@heroui/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Route, Routes } from 'react-router';
 import App from './app/app';
-import LoginPage from './app/login-page';
-import RegisterPage from './app/register-page';
+import LoginPage from './app/auth-pages/login-page';
+import RegisterPage from './app/auth-pages/register-page';
 import { queryClient } from './api/query-client';
 import { AppRoutes } from './routes';
 

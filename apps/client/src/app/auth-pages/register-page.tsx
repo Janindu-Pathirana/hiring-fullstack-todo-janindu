@@ -1,58 +1,53 @@
 import { useState } from 'react';
-import { Button, Checkbox, Input, Link } from '@heroui/react';
+import { Button, Input, Link } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LockClosedIcon } from '@heroicons/react/24/outline';
+import { UserIcon } from '@heroicons/react/24/outline';
 import { Controller, useForm } from 'react-hook-form';
+import { Link as RouterLink } from 'react-router';
 import { z } from 'zod';
-import { readErrorMessage } from '../common/read-error-message';
-import { useLogin } from '../service/use-auth.service';
+import { readErrorMessage } from '../../common/read-error-message';
+import { AppRoutes } from '../../routes';
+import { useRegister } from '../../service/use-auth.service';
 
-const rememberedUsernameKey = 'remembered-username';
+const registerSchema = z
+  .object({
+    username: z.string().trim().min(1, 'Username is required').max(64),
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .max(72),
+    confirmPassword: z.string().min(1, 'Confirm your password'),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 
-const loginSchema = z.object({
-  username: z.string().trim().min(1, 'Username is required').max(64),
-  password: z.string().min(1, 'Password is required').max(72),
-  remember: z.boolean(),
-});
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
-type LoginFormValues = z.infer<typeof loginSchema>;
-
-export function LoginPage() {
+export function RegisterPage() {
   const [notice, setNotice] = useState<{
     tone: 'success' | 'error';
     text: string;
   } | null>(null);
 
-  const { control, handleSubmit } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+  const { control, handleSubmit } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: localStorage.getItem(rememberedUsernameKey) ?? '',
+      username: '',
       password: '',
-      remember: localStorage.getItem(rememberedUsernameKey) !== null,
+      confirmPassword: '',
     },
   });
 
-  const signIn = useLogin();
+  const register = useRegister();
 
-  function onSubmit(values: LoginFormValues) {
+  function onSubmit(values: RegisterFormValues) {
     setNotice(null);
-    signIn.mutate(
+    register.mutate(
       { username: values.username, password: values.password },
       {
-        onSuccess: (data, body) => {
-          localStorage.setItem(
-            'auth',
-            JSON.stringify({
-              accessToken: data.accessToken,
-              refreshToken: data.refreshToken,
-              user: data.user,
-            }),
-          );
-          if (values.remember) {
-            localStorage.setItem(rememberedUsernameKey, body.username);
-          } else {
-            localStorage.removeItem(rememberedUsernameKey);
-          }
+        onSuccess: (data) => {
           setNotice({ tone: 'success', text: data.message });
         },
         onError: (error) => {
@@ -67,14 +62,14 @@ export function LoginPage() {
       <section className="w-full max-w-md rounded-2xl bg-white px-8 py-10 shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
-            <LockClosedIcon aria-hidden className="h-6 w-6" />
+            <UserIcon aria-hidden className="h-6 w-6" />
           </span>
           <div>
             <h1 className="text-xl font-semibold text-slate-900">
-              Sign in to your account
+              Create an Account
             </h1>
             <p className="mt-1 text-sm text-slate-500">
-              Welcome back! Please enter your details.
+              Join us today! Please fill in your details.
             </p>
           </div>
         </div>
@@ -87,7 +82,7 @@ export function LoginPage() {
               <Input
                 label="Username"
                 labelPlacement="outside"
-                placeholder="Enter your username"
+                placeholder="Choose a username"
                 variant="bordered"
                 value={field.value}
                 onValueChange={field.onChange}
@@ -105,7 +100,7 @@ export function LoginPage() {
               <Input
                 label="Password"
                 labelPlacement="outside"
-                placeholder="Enter your password"
+                placeholder="Create a password"
                 type="password"
                 variant="bordered"
                 value={field.value}
@@ -113,28 +108,29 @@ export function LoginPage() {
                 onBlur={field.onBlur}
                 isInvalid={fieldState.invalid}
                 errorMessage={fieldState.error?.message}
-                autoComplete="current-password"
+                autoComplete="new-password"
               />
             )}
           />
-          <div className="flex items-center justify-between">
-            <Controller
-              name="remember"
-              control={control}
-              render={({ field }) => (
-                <Checkbox
-                  isSelected={field.value}
-                  onValueChange={field.onChange}
-                  size="sm"
-                >
-                  Remember me
-                </Checkbox>
-              )}
-            />
-            <Link size="sm" color="primary" onPress={() => undefined}>
-              Forgot password?
-            </Link>
-          </div>
+          <Controller
+            name="confirmPassword"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Input
+                label="Confirm Password"
+                labelPlacement="outside"
+                placeholder="Confirm your password"
+                type="password"
+                variant="bordered"
+                value={field.value}
+                onValueChange={field.onChange}
+                onBlur={field.onBlur}
+                isInvalid={fieldState.invalid}
+                errorMessage={fieldState.error?.message}
+                autoComplete="new-password"
+              />
+            )}
+          />
           {notice ? (
             <p
               className={`text-center text-sm ${notice.tone === 'error' ? 'text-danger' : 'text-success'}`}
@@ -147,14 +143,25 @@ export function LoginPage() {
             color="primary"
             type="submit"
             fullWidth
-            isLoading={signIn.isPending}
+            isLoading={register.isPending}
           >
-            Sign in
+            Register
           </Button>
+          <p className="text-center text-sm text-slate-500">
+            Already have an account?{' '}
+            <Link
+              as={RouterLink}
+              to={AppRoutes.LOGIN}
+              size="sm"
+              color="primary"
+            >
+              Sign in
+            </Link>
+          </p>
         </form>
       </section>
     </main>
   );
 }
 
-export default LoginPage;
+export default RegisterPage;
