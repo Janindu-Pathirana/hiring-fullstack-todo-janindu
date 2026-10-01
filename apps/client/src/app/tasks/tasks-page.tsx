@@ -169,6 +169,17 @@ export function TasksPage() {
             setPage(page - 1);
           }
         }}
+        onUpdated={(values) => {
+          setSelectedTask((current) =>
+            current
+              ? {
+                  ...current,
+                  title: values.title,
+                  description: values.description,
+                }
+              : current,
+          );
+        }}
       />
     </Window>
   );

@@ -11,9 +11,15 @@ import {
 } from '@heroui/react';
 import { CheckIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { TodoStatus } from '@hiring-fullstack-todo-janindu/shared-types';
+import { z } from 'zod';
 import type { TodoListItem } from '../../api/todo.api';
 import { readErrorMessage } from '../../common/read-error-message';
 import { useDeleteTodo, useUpdateTodo } from '../../service/use-todo.service';
+
+const editTaskSchema = z.object({
+  title: z.string().trim().min(1, 'Title is required').max(200),
+  description: z.string().trim().max(2000),
+});
 
 const statusLabel: Record<TodoStatus, string> = {
   [TodoStatus.InProgress]: 'In Progress',
@@ -39,6 +45,7 @@ type TaskDetailsDialogProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onDeleted: () => void;
+  onUpdated: (values: { title: string; description: string | null }) => void;
 };
 
 export function TaskDetailsDialog({
@@ -46,16 +53,65 @@ export function TaskDetailsDialog({
   isOpen,
   onOpenChange,
   onDeleted,
+  onUpdated,
 }: TaskDetailsDialogProps) {
   const updateTodo = useUpdateTodo();
   const deleteTodo = useDeleteTodo();
   const [notice, setNotice] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const done = task?.status === TodoStatus.Done;
   const nextStatus = done ? TodoStatus.InProgress : TodoStatus.Done;
+  const savingDetails = isEditing && updateTodo.isPending;
 
   function close() {
     setNotice(null);
+    setIsEditing(false);
     onOpenChange(false);
+  }
+
+  function onEdit() {
+    setTitle(task?.title ?? '');
+    setDescription(task?.description ?? '');
+    setNotice(null);
+    setIsEditing(true);
+  }
+
+  function onSave() {
+    if (!task) {
+      return;
+    }
+    const parsed = editTaskSchema.safeParse({ title, description });
+    if (!parsed.success) {
+      setNotice(parsed.error.issues[0]?.message ?? 'Title is required');
+      return;
+    }
+    setNotice(null);
+    updateTodo.mutate(
+      {
+        id: task.id,
+        body: {
+          title: parsed.data.title,
+          description: parsed.data.description,
+        },
+      },
+      {
+        onSuccess: () => {
+          onUpdated({
+            title: parsed.data.title,
+            description: parsed.data.description
+              ? parsed.data.description
+              : null,
+          });
+          setIsEditing(false);
+          setNotice(null);
+        },
+        onError: (error) => {
+          setNotice(readErrorMessage(error));
+        },
+      },
+    );
   }
 
   function onStatus() {
@@ -96,6 +152,7 @@ export function TaskDetailsDialog({
       onOpenChange={(open) => {
         if (!open) {
           setNotice(null);
+          setIsEditing(false);
         }
         onOpenChange(open);
       }}
@@ -123,7 +180,7 @@ export function TaskDetailsDialog({
             aria-label="Delete"
             onPress={onDelete}
             isLoading={deleteTodo.isPending}
-            isDisabled={updateTodo.isPending}
+            isDisabled={updateTodo.isPending || savingDetails}
           >
             <TrashIcon aria-hidden className="h-5 w-5" />
           </Button>
@@ -134,8 +191,9 @@ export function TaskDetailsDialog({
             labelPlacement="outside"
             placeholder="Enter a task title"
             variant="bordered"
-            value={task?.title ?? ''}
-            isReadOnly
+            value={isEditing ? title : (task?.title ?? '')}
+            onValueChange={setTitle}
+            isReadOnly={!isEditing}
           />
           <Textarea
             label="Description"
@@ -143,8 +201,9 @@ export function TaskDetailsDialog({
             placeholder="Add a description"
             variant="bordered"
             minRows={3}
-            value={task?.description ?? ''}
-            isReadOnly
+            value={isEditing ? description : (task?.description ?? '')}
+            onValueChange={setDescription}
+            isReadOnly={!isEditing}
           />
           {notice ? (
             <p className="text-sm text-danger" role="alert">
@@ -152,7 +211,7 @@ export function TaskDetailsDialog({
             </p>
           ) : null}
         </ModalBody>
-        <ModalFooter>
+        <ModalFooter className="flex justify-between">
           <Button
             variant="light"
             onPress={close}
@@ -160,15 +219,27 @@ export function TaskDetailsDialog({
           >
             Cancel
           </Button>
-          <Button
-            color={done ? 'primary' : 'success'}
-            startContent={<CheckIcon aria-hidden className="h-4 w-4" />}
-            onPress={onStatus}
-            isLoading={updateTodo.isPending}
-            isDisabled={deleteTodo.isPending}
-          >
-            {done ? 'Change to In Progress' : 'Mark as Done'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="bordered"
+              onPress={isEditing ? onSave : onEdit}
+              isLoading={savingDetails}
+              isDisabled={
+                deleteTodo.isPending || (!isEditing && updateTodo.isPending)
+              }
+            >
+              {isEditing ? 'Save' : 'Edit'}
+            </Button>
+            <Button
+              color={done ? 'primary' : 'success'}
+              startContent={<CheckIcon aria-hidden className="h-4 w-4" />}
+              onPress={onStatus}
+              isLoading={!isEditing && updateTodo.isPending}
+              isDisabled={deleteTodo.isPending || savingDetails}
+            >
+              {done ? 'Change to In Progress' : 'Mark as Done'}
+            </Button>
+          </div>
         </ModalFooter>
       </ModalContent>
     </Modal>
