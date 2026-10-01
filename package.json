@@ -67,6 +67,7 @@
     "webpack-dev-server": "^5.2.1"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@heroui/react": "^2.8.10",
     "@janindu-pathirana/authkit": "^1.0.1",
     "@janindu-pathirana/message-builder": "^1.0.4",
