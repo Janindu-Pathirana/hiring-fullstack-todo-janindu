@@ -1,10 +1,14 @@
-import { Avatar } from '@heroui/react';
+import { Avatar, Button, Divider } from '@heroui/react';
 import {
   CheckIcon,
   QueueListIcon,
   Squares2X2Icon,
 } from '@heroicons/react/24/outline';
 import type { ComponentType, SVGProps } from 'react';
+import { useNavigate } from 'react-router';
+import { clearStoredAuth, readStoredAuth } from '../../common/read-stored-auth';
+import { AppRoutes } from '../../routes';
+import { useLogout } from '../../service/use-auth.service';
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -14,6 +18,29 @@ const navItems: { label: string; icon: Icon; active: boolean }[] = [
 ];
 
 export function Sidebar() {
+  const navigate = useNavigate();
+  const logout = useLogout();
+
+  function leave() {
+    clearStoredAuth();
+    navigate(AppRoutes.LOGIN);
+  }
+
+  function onLogout() {
+    const refreshToken = readStoredAuth()?.refreshToken;
+    if (!refreshToken) {
+      leave();
+      return;
+    }
+    logout.mutate(
+      { refreshToken },
+      {
+        onSuccess: leave,
+        onError: leave,
+      },
+    );
+  }
+
   return (
     <aside className="flex w-full shrink-0 flex-col rounded-3xl bg-white px-4 py-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)] lg:w-64">
       <div className="flex items-center gap-3 px-2">
@@ -50,10 +77,24 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-auto flex items-center gap-3 border-t border-slate-100 px-2 pt-5">
-        <Avatar name="Janinu" className="h-10 w-10 shrink-0 text-xs" />
-        <div>
-          <p className="text-sm font-semibold text-slate-900">Janinu</p>
+      <div className="mt-auto border-t border-slate-100 px-2 pt-5">
+        <Button
+          size="sm"
+          fullWidth
+          variant="light"
+          color="danger"
+          className="mb-3 border border-red-500"
+          onPress={onLogout}
+          isLoading={logout.isPending}
+        >
+          Logout
+        </Button>
+
+        <div className="flex items-center gap-3">
+          <Avatar name="Janinu" className="h-10 w-10 shrink-0 text-xs" />
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Janinu</p>
+          </div>
         </div>
       </div>
     </aside>

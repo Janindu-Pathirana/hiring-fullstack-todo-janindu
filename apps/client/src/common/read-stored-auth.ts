@@ -23,6 +23,14 @@ export function readStoredAuth(): StoredAuth | null {
   }
 }
 
+export function writeStoredAuth(auth: StoredAuth) {
+  localStorage.setItem(authStorageKey, JSON.stringify(auth));
+}
+
+export function clearStoredAuth() {
+  localStorage.removeItem(authStorageKey);
+}
+
 function isStoredAuth(value: unknown): value is StoredAuth {
   return (
     typeof value === 'object' &&
