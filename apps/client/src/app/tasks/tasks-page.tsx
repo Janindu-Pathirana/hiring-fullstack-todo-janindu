@@ -81,7 +81,7 @@ export function TasksPage() {
           <p className="mt-8 text-sm text-slate-500">No tasks yet.</p>
         ) : null}
         {todos.length > 0 ? (
-          <section className="mt-8 p-1 grid min-h-0 w-full flex-1 gap-4 overflow-y-auto lg:grid-cols-3">
+          <section className="mt-8 grid w-full gap-4 p-1 lg:grid-cols-3">
             {todos.map((task) => {
               const done = task.status === TodoStatus.Done;
               const status = done ? TodoStatus.Done : TodoStatus.InProgress;
