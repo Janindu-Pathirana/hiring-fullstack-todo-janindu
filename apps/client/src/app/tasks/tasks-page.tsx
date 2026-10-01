@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Button, Pagination } from '@heroui/react';
+import { Button, Card, CardBody, Pagination } from '@heroui/react';
 import { CheckIcon, ClockIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { TodoStatus } from '@hiring-fullstack-todo-janindu/shared-types';
+import type { TodoListItem } from '../../api/todo.api';
 import { readErrorMessage } from '../../common/read-error-message';
 import { Window } from '../../common/window';
 import { useTodos } from '../../service/use-todo.service';
 import { CreateTaskDialog } from '../dashboard/create-task-dialog';
+import { TaskDetailsDialog } from './task-details-dialog';
 
 const statusLabel: Record<TodoStatus, string> = {
   [TodoStatus.InProgress]: 'In Progress',
@@ -34,6 +36,7 @@ function formatCreatedAt(value: string) {
 export function TasksPage() {
   const [page, setPage] = useState(1);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TodoListItem | null>(null);
   const todosQuery = useTodos(page);
   const todos = todosQuery.data?.todos ?? [];
   const completed = todosQuery.data?.completed;
@@ -83,12 +86,14 @@ export function TasksPage() {
                 const done = task.status === TodoStatus.Done;
                 const status = done ? TodoStatus.Done : TodoStatus.InProgress;
                 return (
-                  <article
+                  <Card
                     key={task.id}
-                    className={`rounded-2xl px-5 py-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] ${
-                      done ? 'bg-emerald-50/70' : 'bg-white'
-                    }`}
+                    isPressable
+                    onPress={() => setSelectedTask(task)}
+                    shadow="sm"
+                    className={`w-full ${done ? 'bg-emerald-50/70' : 'bg-white'}`}
                   >
+                    <CardBody className="px-5 py-5 text-left">
                     <div className="flex items-start gap-3">
                       <span
                         aria-hidden
@@ -128,7 +133,8 @@ export function TasksPage() {
                         Created at {formatCreatedAt(task.createdAt)}
                       </span>
                     </div>
-                  </article>
+                    </CardBody>
+                  </Card>
                 );
               })}
             </section>
@@ -149,6 +155,20 @@ export function TasksPage() {
         isOpen={isCreateOpen}
         onOpenChange={setIsCreateOpen}
         onCreated={() => setPage(1)}
+      />
+      <TaskDetailsDialog
+        task={selectedTask}
+        isOpen={selectedTask !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedTask(null);
+          }
+        }}
+        onDeleted={() => {
+          if (todos.length === 1 && page > 1) {
+            setPage(page - 1);
+          }
+        }}
       />
     </Window>
   );
