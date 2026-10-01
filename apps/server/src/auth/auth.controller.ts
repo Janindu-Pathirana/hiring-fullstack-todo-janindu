@@ -8,6 +8,8 @@ import MessageBuilder from '@janindu-pathirana/message-builder';
 import { handleError } from '../common/handle-error';
 import { AuthService } from './auth.service';
 import { LoginBodyDto } from './dto/login.dto';
+import { LogoutBodyDto } from './dto/logout.dto';
+import { RefreshBodyDto } from './dto/refresh.dto';
 import { RegisterBodyDto } from './dto/register.dto';
 
 @Controller('auth')
@@ -32,6 +34,30 @@ export class AuthController {
   async login(@Body() body: LoginBodyDto) {
     try {
       return await this.authService.login(body.username, body.password);
+    } catch (error) {
+      handleError(
+        error,
+        new InternalServerErrorException(this.messages.somethingWentWrong()),
+      );
+    }
+  }
+
+  @Post('refresh')
+  async refresh(@Body() body: RefreshBodyDto) {
+    try {
+      return await this.authService.refresh(body.refreshToken);
+    } catch (error) {
+      handleError(
+        error,
+        new InternalServerErrorException(this.messages.somethingWentWrong()),
+      );
+    }
+  }
+
+  @Post('logout')
+  async logout(@Body() body: LogoutBodyDto) {
+    try {
+      return await this.authService.logout(body.refreshToken);
     } catch (error) {
       handleError(
         error,

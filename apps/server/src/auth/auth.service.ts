@@ -51,6 +51,36 @@ export class AuthService {
     }
   }
 
+  async refresh(refreshToken: string) {
+    try {
+      const session = await this.authKit.client.refresh(refreshToken);
+      return { message: this.messages.success('refresh'), ...session };
+    } catch (error) {
+      if (isAuthKitError(error)) {
+        throw this.toHttpError(error);
+      }
+      handleError(
+        error,
+        new InternalServerErrorException(this.messages.somethingWentWrong()),
+      );
+    }
+  }
+
+  async logout(refreshToken: string) {
+    try {
+      await this.authKit.client.logout(refreshToken);
+      return { message: this.messages.success('logout') };
+    } catch (error) {
+      if (isAuthKitError(error)) {
+        throw this.toHttpError(error);
+      }
+      handleError(
+        error,
+        new InternalServerErrorException(this.messages.somethingWentWrong()),
+      );
+    }
+  }
+
   private toHttpError(error: AuthKitError): HttpException {
     switch (error.code) {
       case 'USERNAME_TAKEN':
@@ -68,6 +98,11 @@ export class AuthService {
           this.messages.invalid('password', error.message),
         );
       case 'INVALID_CREDENTIALS':
+      case 'UNAUTHORIZED':
+      case 'TOKEN_INVALID':
+      case 'SESSION_EXPIRED':
+      case 'SESSION_REVOKED':
+      case 'SESSION_NOT_FOUND':
         return new UnauthorizedException(this.messages.unauthorized());
       case 'RATE_LIMITED':
         return new HttpException(error.message, HttpStatus.TOO_MANY_REQUESTS);
