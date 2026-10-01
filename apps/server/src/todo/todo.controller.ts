@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   InternalServerErrorException,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -13,6 +15,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { handleError } from '../common/handle-error';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { GetTodoDto } from './dto/get-todo.dto';
+import { UpdateTodoDto } from './dto/update-todo.dto';
 import { TodoService } from './todo.service';
 
 @Controller('todo')
@@ -60,6 +63,37 @@ export class TodoController {
   ) {
     try {
       return await this.todoService.findOne(user.id, params.id);
+    } catch (error) {
+      handleError(
+        error,
+        new InternalServerErrorException(this.messages.somethingWentWrong()),
+      );
+    }
+  }
+
+  @Patch(':id')
+  async update(
+    @Param() params: GetTodoDto,
+    @Body() body: UpdateTodoDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    try {
+      return await this.todoService.update(user.id, params.id, body);
+    } catch (error) {
+      handleError(
+        error,
+        new InternalServerErrorException(this.messages.somethingWentWrong()),
+      );
+    }
+  }
+
+  @Delete(':id')
+  async remove(
+    @Param() params: GetTodoDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    try {
+      return await this.todoService.remove(user.id, params.id);
     } catch (error) {
       handleError(
         error,

@@ -1,9 +1,11 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { TodoStatus } from '@hiring-fullstack-todo-janindu/shared-types';
 import MessageBuilder from '@janindu-pathirana/message-builder';
 import { IsNull, Repository } from 'typeorm';
 import { handleError } from '../common/handle-error';
@@ -51,12 +53,7 @@ export class TodoService {
 
   async findOne(userId: string, id: string) {
     try {
-      const todo = await this.todos.findOne({
-        where: { id, userId, deletedAt: IsNull() },
-      });
-      if (!todo) {
-        throw new NotFoundException(this.messages.notFound());
-      }
+      const todo = await this.findOwned(userId, id);
       return { message: this.messages.success('get'), todo };
     } catch (error) {
       handleError(
@@ -64,5 +61,73 @@ export class TodoService {
         new InternalServerErrorException(this.messages.somethingWentWrong()),
       );
     }
+  }
+
+  async update(
+    userId: string,
+    id: string,
+    body: {
+      title?: string;
+      description?: string;
+      status?: TodoStatus;
+    },
+  ) {
+    try {
+      if (
+        body.title === undefined &&
+        body.description === undefined &&
+        body.status === undefined
+      ) {
+        throw new BadRequestException(
+          this.messages.badRequest(
+            'update',
+            'At least one field is required.',
+          ),
+        );
+      }
+
+      const todo = await this.findOwned(userId, id);
+      if (body.title !== undefined) {
+        todo.title = body.title;
+      }
+      if (body.description !== undefined) {
+        todo.description = body.description ? body.description : null;
+      }
+      if (body.status !== undefined) {
+        todo.status = body.status;
+      }
+      todo.updatedAt = new Date();
+      const saved = await this.todos.save(todo);
+      return { message: this.messages.success('update'), todo: saved };
+    } catch (error) {
+      handleError(
+        error,
+        new InternalServerErrorException(this.messages.somethingWentWrong()),
+      );
+    }
+  }
+
+  async remove(userId: string, id: string) {
+    try {
+      const todo = await this.findOwned(userId, id);
+      todo.deletedAt = new Date();
+      const saved = await this.todos.save(todo);
+      return { message: this.messages.success('delete'), todo: saved };
+    } catch (error) {
+      handleError(
+        error,
+        new InternalServerErrorException(this.messages.somethingWentWrong()),
+      );
+    }
+  }
+
+  private async findOwned(userId: string, id: string) {
+    const todo = await this.todos.findOne({
+      where: { id, userId, deletedAt: IsNull() },
+    });
+    if (!todo) {
+      throw new NotFoundException(this.messages.notFound());
+    }
+    return todo;
   }
 }
