@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthKitError } from '@janindu-pathirana/authkit';
@@ -18,6 +19,7 @@ jest.mock('./authkit.service', () => ({
 describe('AuthService', () => {
   const messages = new MessageBuilder('user');
   const register = jest.fn();
+  const loginWithSession = jest.fn();
   let service: AuthService;
 
   beforeAll(async () => {
@@ -26,7 +28,7 @@ describe('AuthService', () => {
         AuthService,
         {
           provide: AuthKitService,
-          useValue: { client: { register } },
+          useValue: { client: { register, loginWithSession } },
         },
       ],
     }).compile();
@@ -37,6 +39,7 @@ describe('AuthService', () => {
   beforeEach(() => {
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     register.mockReset();
+    loginWithSession.mockReset();
   });
 
   afterEach(() => {
@@ -123,5 +126,54 @@ describe('AuthService', () => {
     await expect(service.register('jane', 'password1')).rejects.toEqual(
       new InternalServerErrorException(messages.somethingWentWrong()),
     );
+  });
+
+  describe('login()', () => {
+    const user = {
+      id: '1',
+      username: 'jane',
+      createdAt: new Date('2026-10-01T00:00:00.000Z'),
+      deletedAt: null,
+    };
+    const session = {
+      user,
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      accessTokenExpiresAt: new Date('2026-10-01T00:15:00.000Z'),
+      refreshTokenExpiresAt: new Date('2026-10-31T00:00:00.000Z'),
+      sessionId: 'session-1',
+    };
+
+    it('returns a success message and the session without a password', async () => {
+      loginWithSession.mockResolvedValue(session);
+
+      const result = await service.login('jane', 'password1');
+
+      expect(result).toEqual({
+        message: messages.success('login'),
+        ...session,
+      });
+      expect(result?.user).not.toHaveProperty('password');
+      expect(loginWithSession).toHaveBeenCalledWith('jane', 'password1');
+    });
+
+    it('maps invalid credentials to unauthorized', async () => {
+      loginWithSession.mockRejectedValue(
+        new AuthKitError('INVALID_CREDENTIALS', 'Invalid username or password.'),
+      );
+
+      await expect(service.login('jane', 'password1')).rejects.toEqual(
+        new UnauthorizedException(messages.unauthorized()),
+      );
+      expect(loginWithSession).toHaveBeenCalledWith('jane', 'password1');
+    });
+
+    it('wraps a non-AuthKit error as an internal server error', async () => {
+      loginWithSession.mockRejectedValue(new Error('database down'));
+
+      await expect(service.login('jane', 'password1')).rejects.toEqual(
+        new InternalServerErrorException(messages.somethingWentWrong()),
+      );
+    });
   });
 });
