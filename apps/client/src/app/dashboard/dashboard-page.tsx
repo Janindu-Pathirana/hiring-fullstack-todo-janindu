@@ -1,35 +1,49 @@
 import { Button } from '@heroui/react';
 import {
   CheckCircleIcon,
+  ClockIcon,
   PlusIcon,
   Square3Stack3DIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
+import { readErrorMessage } from '../../common/read-error-message';
 import { Window } from '../../common/window';
+import { useDashboardCounts } from '../../service/use-dashboard.service';
 import { StatCard } from './stat-card';
 
-const stats = [
-  {
-    label: 'Total Tasks',
-    value: '42',
-    icon: Square3Stack3DIcon,
-    iconClassName: 'bg-sky-50 text-sky-500',
-  },
-  {
-    label: 'Completed',
-    value: '28',
-    icon: CheckCircleIcon,
-    iconClassName: 'bg-emerald-50 text-emerald-500',
-  },
-  {
-    label: 'Deleted',
-    value: '5',
-    icon: TrashIcon,
-    iconClassName: 'bg-rose-50 text-rose-400',
-  },
-];
-
 export function DashboardPage() {
+  const dashboard = useDashboardCounts();
+  const counts = dashboard.data?.counts;
+  const countLabel = (count: number | undefined) =>
+    dashboard.isPending || count === undefined ? '—' : String(count);
+
+  const stats = [
+    {
+      label: 'Total Tasks',
+      value: countLabel(counts?.available),
+      icon: Square3Stack3DIcon,
+      iconClassName: 'bg-sky-50 text-sky-500',
+    },
+    {
+      label: 'Completed',
+      value: countLabel(counts?.completed),
+      icon: CheckCircleIcon,
+      iconClassName: 'bg-emerald-50 text-emerald-500',
+    },
+    {
+      label: 'In Progress',
+      value: countLabel(counts?.inProgress),
+      icon: ClockIcon,
+      iconClassName: 'bg-amber-50 text-amber-500',
+    },
+    {
+      label: 'Deleted',
+      value: countLabel(counts?.deleted),
+      icon: TrashIcon,
+      iconClassName: 'bg-rose-50 text-rose-400',
+    },
+  ];
+
   return (
     <Window>
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -49,7 +63,12 @@ export function DashboardPage() {
           Create New Task
         </Button>
       </header>
-      <section className="mt-8 grid gap-4 lg:grid-cols-3">
+      {dashboard.isError ? (
+        <p className="mt-4 text-sm text-danger" role="alert">
+          {readErrorMessage(dashboard.error)}
+        </p>
+      ) : null}
+      <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}
