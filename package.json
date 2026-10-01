@@ -8,7 +8,9 @@
     "client:server": "nx serve server",
     "build": "nx run-many -t build -p client,server",
     "test": "nx run-many -t test -p client,server --parallel",
-    "lint": "nx run-many -t lint"
+    "lint": "nx run-many -t lint",
+    "db:migrate": "typeorm-ts-node-commonjs migration:run -d apps/server/src/config/data-source.ts",
+    "db:revert": "typeorm-ts-node-commonjs migration:revert -d apps/server/src/config/data-source.ts"
   },
   "private": true,
   "devDependencies": {
