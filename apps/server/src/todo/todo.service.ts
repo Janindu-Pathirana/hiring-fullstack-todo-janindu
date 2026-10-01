@@ -11,6 +11,9 @@ import { IsNull, Repository } from 'typeorm';
 import { handleError } from '../common/handle-error';
 import { Todo } from './todo.entity';
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 6;
+
 @Injectable()
 export class TodoService {
   private readonly messages = new MessageBuilder('todo');
@@ -36,7 +39,11 @@ export class TodoService {
     }
   }
 
-  async findAll(userId: string, page = 1, limit = 6) {
+  async findAll(
+    userId: string,
+    page = DEFAULT_PAGE,
+    limit = DEFAULT_PAGE_SIZE,
+  ) {
     try {
       const where = { userId, deletedAt: IsNull() };
       const [todos, total] = await this.todos.findAndCount({
