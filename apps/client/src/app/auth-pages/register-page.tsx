@@ -5,7 +5,7 @@ import { UserIcon } from '@heroicons/react/24/outline';
 import { Controller, useForm } from 'react-hook-form';
 import { Link as RouterLink, useNavigate } from 'react-router';
 import { z } from 'zod';
-import { readErrorMessage } from '../../common/read-error-message';
+import { readErrorMessage } from '../../util/read-error-message';
 import { AppRoutes } from '../../routes';
 import { useRegister } from '../../service/use-auth.service';
 

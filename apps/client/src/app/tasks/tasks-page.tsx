@@ -3,11 +3,11 @@ import { Button, Card, CardBody, Pagination } from '@heroui/react';
 import { CheckIcon, ClockIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { TodoStatus } from '@hiring-fullstack-todo-janindu/shared-types';
 import type { TodoListItem } from '../../api/todo.api';
-import { readErrorMessage } from '../../common/read-error-message';
-import { Window } from '../../common/window';
+import { readErrorMessage } from '../../util/read-error-message';
+import { Window } from '../../components/common/window';
 import { useTodos } from '../../service/use-todo.service';
-import { CreateTaskDialog } from '../dashboard/create-task-dialog';
-import { TaskDetailsDialog } from './task-details-dialog';
+import { CreateTaskDialog } from '../../components/todo/create-task-dialog';
+import { TaskDetailsDialog } from '../../components/todo/task-details-dialog';
 
 const statusLabel: Record<TodoStatus, string> = {
   [TodoStatus.InProgress]: 'In Progress',

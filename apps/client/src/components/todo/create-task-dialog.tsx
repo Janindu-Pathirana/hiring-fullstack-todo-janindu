@@ -12,7 +12,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { readErrorMessage } from '../../common/read-error-message';
+import { readErrorMessage } from '../../util/read-error-message';
 import { useCreateTodo } from '../../service/use-todo.service';
 
 const createTaskSchema = z.object({

@@ -6,9 +6,9 @@ import {
 } from '@heroicons/react/24/outline';
 import type { ComponentType, SVGProps } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { clearStoredAuth, readStoredAuth } from '../../common/read-stored-auth';
 import { AppRoutes } from '../../routes';
 import { useLogout } from '../../service/use-auth.service';
+import { clearStoredAuth, readStoredAuth } from '../../util/read-stored-auth';
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -25,6 +25,7 @@ export function Sidebar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const logout = useLogout();
+  const username = readStoredAuth()?.user.username ?? '';
 
   function leave() {
     clearStoredAuth();
@@ -97,9 +98,9 @@ export function Sidebar() {
         </Button>
 
         <div className="flex items-center gap-3">
-          <Avatar name="Janinu" className="h-10 w-10 shrink-0 text-xs" />
+          <Avatar name={username} className="h-10 w-10 shrink-0 text-xs" />
           <div>
-            <p className="text-sm font-semibold text-slate-900">Janinu</p>
+            <p className="text-sm font-semibold text-slate-900">{username}</p>
           </div>
         </div>
       </div>

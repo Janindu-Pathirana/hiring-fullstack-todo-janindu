@@ -6,7 +6,7 @@ import {
   clearStoredAuth,
   readStoredAuth,
   writeStoredAuth,
-} from '../common/read-stored-auth';
+} from '../util/read-stored-auth';
 
 declare module 'axios' {
   interface AxiosRequestConfig {

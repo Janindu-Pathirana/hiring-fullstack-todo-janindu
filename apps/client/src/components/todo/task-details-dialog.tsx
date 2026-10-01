@@ -13,7 +13,7 @@ import { CheckIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { TodoStatus } from '@hiring-fullstack-todo-janindu/shared-types';
 import { z } from 'zod';
 import type { TodoListItem } from '../../api/todo.api';
-import { readErrorMessage } from '../../common/read-error-message';
+import { readErrorMessage } from '../../util/read-error-message';
 import { useDeleteTodo, useUpdateTodo } from '../../service/use-todo.service';
 
 const editTaskSchema = z.object({

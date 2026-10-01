@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Sidebar } from '../app/dashboard/sidebar';
+import { Sidebar } from './sidebar';
 
 export function Window({ children }: { children: ReactNode }) {
   return (

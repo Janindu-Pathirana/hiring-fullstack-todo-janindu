@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router';
-import { readStoredAuth } from '../common/read-stored-auth';
+import { readStoredAuth } from '../util/read-stored-auth';
 import { AppRoutes } from '../routes';
 
 export function RequireAuth() {

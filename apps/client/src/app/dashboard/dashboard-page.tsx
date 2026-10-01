@@ -7,11 +7,11 @@ import {
   Square3Stack3DIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import { readErrorMessage } from '../../common/read-error-message';
-import { Window } from '../../common/window';
+import { readErrorMessage } from '../../util/read-error-message';
+import { Window } from '../../components/common/window';
 import { useDashboardCounts } from '../../service/use-dashboard.service';
-import { CreateTaskDialog } from './create-task-dialog';
-import { StatCard } from './stat-card';
+import { StatCard } from '../../components/dashboard/stat-card';
+import { CreateTaskDialog } from '../../components/todo/create-task-dialog';
 
 export function DashboardPage() {
   const dashboard = useDashboardCounts();
