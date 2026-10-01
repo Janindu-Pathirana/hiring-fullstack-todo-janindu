@@ -46,7 +46,7 @@ export function TasksPage() {
 
   return (
     <Window>
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
@@ -81,19 +81,19 @@ export function TasksPage() {
           <p className="mt-8 text-sm text-slate-500">No tasks yet.</p>
         ) : null}
         {todos.length > 0 ? (
-          <section className="mt-8 grid w-full gap-4 lg:grid-cols-3">
-              {todos.map((task) => {
-                const done = task.status === TodoStatus.Done;
-                const status = done ? TodoStatus.Done : TodoStatus.InProgress;
-                return (
-                  <Card
-                    key={task.id}
-                    isPressable
-                    onPress={() => setSelectedTask(task)}
-                    shadow="sm"
-                    className={`w-full ${done ? 'bg-emerald-50/70' : 'bg-white'}`}
-                  >
-                    <CardBody className="px-5 py-5 text-left">
+          <section className="mt-8 p-1 grid min-h-0 w-full flex-1 gap-4 overflow-y-auto lg:grid-cols-3">
+            {todos.map((task) => {
+              const done = task.status === TodoStatus.Done;
+              const status = done ? TodoStatus.Done : TodoStatus.InProgress;
+              return (
+                <Card
+                  key={task.id}
+                  isPressable
+                  onPress={() => setSelectedTask(task)}
+                  shadow="sm"
+                  className={`w-full ${done ? 'bg-emerald-50/70' : 'bg-white'}`}
+                >
+                  <CardBody className="px-5 py-5 text-left">
                     <div className="flex items-start gap-3">
                       <span
                         aria-hidden
@@ -133,14 +133,14 @@ export function TasksPage() {
                         Created at {formatCreatedAt(task.createdAt)}
                       </span>
                     </div>
-                    </CardBody>
-                  </Card>
-                );
-              })}
-            </section>
-          ) : null}
+                  </CardBody>
+                </Card>
+              );
+            })}
+          </section>
+        ) : null}
         {todosQuery.isSuccess && totalPages >= 1 ? (
-          <div className="mt-auto flex justify-center pt-8">
+          <div className="mt-auto flex shrink-0 justify-center pt-8">
             <Pagination
               page={page}
               total={totalPages}

@@ -47,7 +47,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex w-full shrink-0 flex-col rounded-3xl bg-white px-4 py-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)] lg:w-64">
+    <aside className="flex w-full shrink-0 flex-col rounded-3xl bg-white px-4 py-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)] lg:h-full lg:min-h-0 lg:w-64">
       <div className="flex items-center gap-3 px-2">
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-500 text-white">
           <CheckIcon aria-hidden className="h-5 w-5" />
