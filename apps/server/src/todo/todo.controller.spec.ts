@@ -5,11 +5,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { TodoStatus } from '@hiring-fullstack-todo-janindu/shared-types';
 import MessageBuilder from '@janindu-pathirana/message-builder';
 import { AuthKitService } from '../auth/authkit.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { GetTodoDto } from './dto/get-todo.dto';
 import { ListTodoDto } from './dto/list-todo.dto';
+import { ReplaceTodoDto } from './dto/replace-todo.dto';
+import { ReplaceTodoParamsDto } from './dto/replace-todo-params.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { TodoController } from './todo.controller';
 import { TodoService } from './todo.service';
@@ -32,6 +35,7 @@ describe('TodoController', () => {
   const findAll = jest.fn();
   const findOne = jest.fn();
   const update = jest.fn();
+  const replace = jest.fn();
   const remove = jest.fn();
   let controller: TodoController;
 
@@ -41,7 +45,7 @@ describe('TodoController', () => {
       providers: [
         {
           provide: TodoService,
-          useValue: { create, findAll, findOne, update, remove },
+          useValue: { create, findAll, findOne, update, replace, remove },
         },
         {
           provide: AuthKitService,
@@ -59,6 +63,7 @@ describe('TodoController', () => {
     findAll.mockReset();
     findOne.mockReset();
     update.mockReset();
+    replace.mockReset();
     remove.mockReset();
   });
 
@@ -201,6 +206,47 @@ describe('TodoController', () => {
       update.mockRejectedValue(new Error('database down'));
 
       await expect(controller.update(params, body, user)).rejects.toEqual(
+        new InternalServerErrorException(messages.somethingWentWrong()),
+      );
+    });
+  });
+
+  describe('replace()', () => {
+    const params = Object.assign(new ReplaceTodoParamsDto(), {
+      id: '11111111-1111-4111-8111-111111111111',
+    });
+    const body = Object.assign(new ReplaceTodoDto(), {
+      title: 'New title',
+      description: 'New description',
+      status: TodoStatus.Done,
+    });
+
+    it('returns the service result for the current user', async () => {
+      const result = {
+        message: messages.success('replace'),
+        todo: { id: params.id, title: 'New title' },
+      };
+      replace.mockResolvedValue(result);
+
+      await expect(controller.replace(params, body, user)).resolves.toEqual(
+        result,
+      );
+      expect(replace).toHaveBeenCalledWith('user-1', params.id, body);
+    });
+
+    it('rethrows an HttpException from the service', async () => {
+      const notFound = new NotFoundException(messages.notFound());
+      replace.mockRejectedValue(notFound);
+
+      await expect(controller.replace(params, body, user)).rejects.toBe(
+        notFound,
+      );
+    });
+
+    it('wraps an unknown error as an internal server error', async () => {
+      replace.mockRejectedValue(new Error('database down'));
+
+      await expect(controller.replace(params, body, user)).rejects.toEqual(
         new InternalServerErrorException(messages.somethingWentWrong()),
       );
     });

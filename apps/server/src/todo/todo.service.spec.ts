@@ -235,6 +235,75 @@ describe('TodoService', () => {
     });
   });
 
+  describe('replace()', () => {
+    const existing = {
+      id: 'todo-1',
+      userId: 'user-1',
+      title: 'Buy milk',
+      description: 'Whole milk',
+      status: TodoStatus.InProgress,
+      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+      deletedAt: null,
+    };
+
+    it('replaces title, description, and status and sets updatedAt', async () => {
+      findOne.mockResolvedValue({ ...existing });
+      save.mockImplementation(async (todo) => todo);
+
+      const result = await service.replace('user-1', 'todo-1', {
+        title: 'New title',
+        description: 'Skim milk',
+        status: TodoStatus.Done,
+      });
+
+      expect(result.message).toBe(messages.success('replace'));
+      expect(result.todo).toMatchObject({
+        id: 'todo-1',
+        userId: 'user-1',
+        title: 'New title',
+        description: 'Skim milk',
+        status: TodoStatus.Done,
+      });
+      expect(result.todo.updatedAt).not.toEqual(existing.updatedAt);
+    });
+
+    it('stores a missing description as null', async () => {
+      findOne.mockResolvedValue({ ...existing });
+      save.mockImplementation(async (todo) => todo);
+
+      const result = await service.replace('user-1', 'todo-1', {
+        title: 'New title',
+        status: TodoStatus.Done,
+      });
+
+      expect(result.todo.description).toBeNull();
+    });
+
+    it('stores a blank description as null', async () => {
+      findOne.mockResolvedValue({ ...existing });
+      save.mockImplementation(async (todo) => todo);
+
+      const result = await service.replace('user-1', 'todo-1', {
+        title: 'New title',
+        description: '',
+        status: TodoStatus.InProgress,
+      });
+
+      expect(result.todo.description).toBeNull();
+    });
+
+    it('returns not found when the todo is missing', async () => {
+      findOne.mockResolvedValue(null);
+
+      await expect(
+        service.replace('user-1', 'todo-1', {
+          title: 'New title',
+          status: TodoStatus.Done,
+        }),
+      ).rejects.toEqual(new NotFoundException(messages.notFound()));
+    });
+  });
+
   describe('remove()', () => {
     it('sets deletedAt on the owned todo', async () => {
       const existing = {

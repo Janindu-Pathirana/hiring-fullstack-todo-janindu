@@ -144,6 +144,7 @@ Every todo route uses that owner. A missing id, another user's id, or a row with
 - `GET /api/todo` query `page` (default 1) and `limit` (default 6, max 50). Returns non-deleted todos, newest first, plus `page`, `limit`, `total`, `totalPages`, and `completed`.
 - `GET /api/todo/:id` returns one todo.
 - `PATCH /api/todo/:id` writes only the sent fields: `title`, `description`, `status` (`TodoStatus`: `in_progress` or `done`). An empty body is 400. `id` and `userId` cannot be set. A blank description becomes null. `updatedAt` is set to now.
+- `PUT /api/todo/:id` replaces `title`, `description`, and `status`. `title` and `status` are required. A missing or blank description is stored as null. `id` and `userId` cannot be set. `updatedAt` is set to now.
 - `DELETE /api/todo/:id` sets `deletedAt` and returns the todo. The row stays in the database.
 
 ## Dashboard
