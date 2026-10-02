@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -17,6 +18,8 @@ import { handleError } from '../common/handle-error';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { GetTodoDto } from './dto/get-todo.dto';
 import { ListTodoDto } from './dto/list-todo.dto';
+import { ReplaceTodoDto } from './dto/replace-todo.dto';
+import { ReplaceTodoParamsDto } from './dto/replace-todo-params.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { TodoService } from './todo.service';
 
@@ -84,6 +87,22 @@ export class TodoController {
   ) {
     try {
       return await this.todoService.update(user.id, params.id, body);
+    } catch (error) {
+      handleError(
+        error,
+        new InternalServerErrorException(this.messages.somethingWentWrong()),
+      );
+    }
+  }
+
+  @Put(':id')
+  async replace(
+    @Param() params: ReplaceTodoParamsDto,
+    @Body() body: ReplaceTodoDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    try {
+      return await this.todoService.replace(user.id, params.id, body);
     } catch (error) {
       handleError(
         error,

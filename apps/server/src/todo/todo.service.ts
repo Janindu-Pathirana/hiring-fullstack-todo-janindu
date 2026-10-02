@@ -128,6 +128,31 @@ export class TodoService {
     }
   }
 
+  async replace(
+    userId: string,
+    id: string,
+    body: {
+      title: string;
+      description?: string;
+      status: TodoStatus;
+    },
+  ) {
+    try {
+      const todo = await this.findOwned(userId, id);
+      todo.title = body.title;
+      todo.description = body.description ? body.description : null;
+      todo.status = body.status;
+      todo.updatedAt = new Date();
+      const saved = await this.todos.save(todo);
+      return { message: this.messages.success('replace'), todo: saved };
+    } catch (error) {
+      handleError(
+        error,
+        new InternalServerErrorException(this.messages.somethingWentWrong()),
+      );
+    }
+  }
+
   async remove(userId: string, id: string) {
     try {
       const todo = await this.findOwned(userId, id);
