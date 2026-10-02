@@ -1,0 +1,5 @@
+autoInstallPeers: true
+onlyBuiltDependencies:
+  - bcrypt
+  - nx
+  - "@heroui/shared-utils"

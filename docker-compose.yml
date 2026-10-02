@@ -1,0 +1,78 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: todo
+      POSTGRES_PASSWORD: todo
+      POSTGRES_DB: hiring_fullstack_todo
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U todo -d hiring_fullstack_todo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  setup:
+    build:
+      context: .
+      dockerfile: docker/setup.Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: "5432"
+      DATABASE_USER: todo
+      DATABASE_PASSWORD: todo
+      DATABASE_NAME: hiring_fullstack_todo
+      DATABASE_URL: postgresql://todo:todo@db:5432/hiring_fullstack_todo
+      AUTHKIT_JWT_SECRET: "BmVRzPj2lh17MsHSMTXlDDfC6uEpq082mWDjmF7L3krp0LAzY3NXTPexMup2By/H"
+    restart: "no"
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: "5432"
+      DATABASE_USER: todo
+      DATABASE_PASSWORD: todo
+      DATABASE_NAME: hiring_fullstack_todo
+      DATABASE_URL: postgresql://todo:todo@db:5432/hiring_fullstack_todo
+      AUTHKIT_JWT_SECRET: "BmVRzPj2lh17MsHSMTXlDDfC6uEpq082mWDjmF7L3krp0LAzY3NXTPexMup2By/H"
+      CLIENT_ORIGIN: http://localhost:3000
+      PORT: "3030"
+    ports:
+      - "3030:3030"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3030/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  client:
+    build:
+      context: .
+      dockerfile: apps/client/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3030
+    depends_on:
+      server:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
